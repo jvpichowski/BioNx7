@@ -8,6 +8,11 @@ if ser.isOpen():
 ser.open()
 print("connected: " + str(ser.isOpen()))
 
+def getposition():
+    '''get position printer head from printer'''
+    # [x,y,z] 
+    return [1,1,1]
+
 # prototypischer Listener, der koordinaten speichert, wenn Touch-Sensor berührt wird
 points = []
 while 1:
@@ -15,12 +20,14 @@ while 1:
     data = ser.readline().decode("ascii")
     # print("Point: "+data)
     if data == "high\r\n": 
-        # [x,y,z]       
-        points.append([1,1,1])        
+        pos = getposition()              
+        points.append(pos)        
         print("Point: " + data + "Memory: " + str(points))
     # Abruch nach 10 Messungen
     elif len(points) == 10:
         break
+
+
  
 
 # Nutzer kann Befehle über Terminal eingeben
