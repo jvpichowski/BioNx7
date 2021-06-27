@@ -7,6 +7,7 @@ from keras.models import model_from_json
 
 #set this Path right !!!!
 path= "C:\\Users\\Jan Lukas\\Desktop\\BioNx7\\model"
+print("This path is used to locate the model: ", path)
 model = keras.models.load_model(path)
 
 model.summary()
