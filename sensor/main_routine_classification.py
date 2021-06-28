@@ -13,7 +13,7 @@ model = keras.models.load_model(path)
 model.summary()
 
 #choose right camera either 0 or 1 
-cam = cv2.VideoCapture(0)
+cam = cv2.VideoCapture(1)
 img_counter = 0 
 cv2.namedWindow("test")
 while True:
@@ -63,14 +63,14 @@ def crop_Images(path):
 
 #testing
 
-'''
+
 image = cv2.imread(img_name)
 import matplotlib.pyplot as plt
 plt.imshow(image.astype("uint8"))
 plt.show()
 
 crop_Images(img_name)
-'''
+
 image = cv2.imread(img_name)
 import matplotlib.pyplot as plt
 plt.imshow(image.astype("uint8"))
@@ -85,6 +85,7 @@ img_array = keras.preprocessing.image.img_to_array(img)
 percentages = model.predict(tf.expand_dims(img_array, 0))
 
 # 0-> 6er Wellplate | 1 -> 12er Wellplate | 2-> 96er Wellplate
+print(percentages)
 well_type= np.argmax(percentages)
 print(well_type)
 
