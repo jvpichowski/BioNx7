@@ -13,16 +13,15 @@ from keras.models import model_from_json
 
 COM_printer = "COM3"
 COM_touch = "COM4"
-printerControll = []
 
 
 #set this Path right !!!!
 path= "C:\\Users\\Jan Lukas\\Desktop\\BioNx7\\model"
 print("This path is used to locate the model: ", path)
 
-def object_detection()
+def object_detection():
     model = keras.models.load_model(path)
-
+    img_name ="image.png"
     model.summary()
 
     #choose right camera either 0 or 1 
@@ -43,7 +42,6 @@ def object_detection()
             break
         elif k%256 == 32:
             # SPACE pressed
-            img_name = "opencv_frame_{}.png".format(img_counter)
             image = frame
             img_counter = img_counter+1
             cv2.imwrite(img_name,image)
@@ -103,32 +101,33 @@ def object_detection()
     well_type= np.argmax(percentages)
     print(well_type)
 
-    well_0 = [[-2.35,2.25],[-4,0],[-4,0],[0,4],[4,0],[4,0]]
+    #TODO: weiterer Messpunkt obere Kante hinzufügen am Ende
+    # Well_1 & Well_2 umrechnen von Relativ zu Absolut 
+    well_0 = [[-2.35,2.25],[-6.35,2.25],[-10.35,2.25],[-2.35,6.25],[-6.35,6.25],[-10.35,6.25]]
     well_1 = [[-2.35,1.55],[-2.7,0],[-2.7,0],[-2.7,0],[0,2.7],[2.7,0],[2.7,0],[2.7,0],[0,2.7],[-2.7,0],[-2.7,0],[-2.7,0]]
     well_2 = [[-1.4,1.1],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[0,0.9],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0], [0,0.9],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[0,0.9],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0], [0,0.9],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[0,0.9],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0.9,0],[0,0.9],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0],[-0.9,0]]
-    
+    array = []    
 
     if(well_type==0):
-        printerControll = [[j*10 for j in i] for i in well_0]
+        array = [[j*10 for j in i] for i in well_0]
     elif(well_type==1):
-        printerControll = [[j*10 for j in i] for i in well_1]
+        array = [[j*10 for j in i] for i in well_1]
     else:
-        printerControll = [[j*10 for j in i] for i in well_2]
+        array = [[j*10 for j in i] for i in well_2]
 
-    print(printerControll)
-    return printerControll
+    print(array)
+    return array
 
 class PrinterControll():
-    def __init__(self, printer_script):
-        self.printer_script = printer_script
-        
+    def __init__(self):
 
         #init Ports
         self.ser = serial.Serial(COM_printer, baudrate = 250000, timeout = 5)
         self.ser_touch = serial.Serial(COM_touch, baudrate = 9600, timeout = 5)
         self.homing()
+        self.ser.write(b"G0 Y100 Z180\r\n")
         #object detection
-        printerControll = object_detection()
+        self.printer_script = object_detection()
         
 
     def homing(self):
@@ -136,7 +135,7 @@ class PrinterControll():
         time.sleep(2)
         self.ser_touch.write(b"up\r\n")
         self.ser.write(b"G28\r\n")
-        time.sleep(15)
+        time.sleep(30)
         pos = self.getposition()
         print(pos)
         self.ser.close()
@@ -151,7 +150,7 @@ class PrinterControll():
         positions = []
         for pos in self.printer_script:
             self.ser.write(b"G1 Z40\r\n")
-            gcode = ("G1 X" + str(pos[0]) + " Y" + str(pos[1]) + " Z40\r\n").encode("UTF-8")
+            gcode = ("G1 X" + str(155.0+pos[0]) + " Y" + str(38.0+pos[1]) + " Z40\r\n").encode("UTF-8")
             print(gcode)
             time.sleep(2)
             self.ser.write(gcode)
@@ -208,6 +207,7 @@ class PrinterControll():
         return [float(position_raw[posX+2:posY]),float(position_raw[posY+2:posZ]),float(position_raw[posZ+2:len(position_raw)-1])]
 
 
+printerControll = PrinterControll()
 print(printerControll.start_run())
 
 
